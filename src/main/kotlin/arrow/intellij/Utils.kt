@@ -3,7 +3,6 @@ package arrow.intellij
 import com.intellij.icons.AllIcons
 import org.jetbrains.kotlin.analysis.api.KaExperimentalApi
 import org.jetbrains.kotlin.analysis.api.KaSession
-import org.jetbrains.kotlin.analysis.api.components.KaDiagnosticCheckerFilter
 import org.jetbrains.kotlin.analysis.api.diagnostics.KaDiagnosticWithPsi
 import org.jetbrains.kotlin.analysis.api.resolution.KaCall
 import org.jetbrains.kotlin.analysis.api.resolution.KaCallableMemberCall
@@ -22,10 +21,9 @@ import org.jetbrains.kotlin.psi.KtExpression
 import org.jetbrains.kotlin.psi.KtFile
 import javax.swing.Icon
 
-@OptIn(KaExperimentalApi::class)
 fun KaSession.commonDiagnosticsFor(
     element: KtElement
-): Collection<KaDiagnosticWithPsi<*>> = element.diagnostics(KaDiagnosticCheckerFilter.ONLY_COMMON_CHECKERS)
+): Collection<KaDiagnosticWithPsi<*>> = commonDiagnostics.commonDiagnosticsFor(this, element)
 
 fun KtFile.addImportIfMissing(fqName: String) {
     val starImport = fqName.take(fqName.lastIndexOf('.'))

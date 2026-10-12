@@ -47,6 +47,37 @@ intellijPlatform {
     }
 }
 
+intellijPlatformTesting {
+    runIde.register("runIde263") {
+        type = IntelliJPlatformType.IntellijIdea
+        // Floating alias for the 263 line; only the Maven snapshot coordinates (not the installer) understand it.
+        version = "263-EAP-SNAPSHOT"
+        useInstaller = false
+        plugins { bundledPlugin("org.jetbrains.kotlin") }
+    }
+}
+
+// Layered compilations, all packaged into the single plugin jar:
+//   compatApi (main platform) <- ide263 (263 platform) <- main
+// `main` can construct the 263 implementation directly: it is only linked (lazily) on the branch taken on 263+.
+kotlin {
+    val compatApi = target.compilations.create("compatApi")
+    val ide263 = target.compilations.create("ide263") { associateWith(compatApi) }
+    target.compilations.getByName("main") {
+        associateWith(compatApi)
+        associateWith(ide263)
+    }
+}
+
+dependencies {
+    "compatApiCompileOnly"(files(configurations.named("intellijPlatformTestClasspath")))
+    "ide263CompileOnly"(files(configurations.named("intellijPlatformTestClasspath_runIde263")))
+}
+
+tasks.jar {
+    from(sourceSets["compatApi"].output.classesDirs, sourceSets["ide263"].output.classesDirs)
+}
+
 tasks {
     // Set the JVM compatibility versions
     withType<JavaCompile> {
